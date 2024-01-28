@@ -78,4 +78,12 @@ public class BooksController : ControllerBase
 
         return NoContent();
     }
+
+    [HttpDelete]
+    public async Task<IActionResult> DeleteAllBook()
+    {
+        await _bookRepository.DeleteAllAsync();
+
+        return NoContent();
+    }
 }

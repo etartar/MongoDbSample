@@ -1,10 +1,12 @@
 ﻿using MongoDB.Bson;
 using MongoDB.Driver;
 using MongoDbSample.Contexts;
+using MongoDbSample.Entities;
 
 namespace MongoDbSample.Repositories.Base;
 
-public abstract class BaseRepository<TEntity> : IBaseRepository<TEntity> where TEntity : class
+public abstract class BaseRepository<TEntity> : IBaseRepository<TEntity> 
+    where TEntity : class, IMongoEntity
 {
     protected readonly IMongoDbContext _mongoContext;
     protected IMongoCollection<TEntity> _dbCollection;
@@ -20,6 +22,10 @@ public abstract class BaseRepository<TEntity> : IBaseRepository<TEntity> where T
         IAsyncCursor<TEntity> query = await Query(Builders<TEntity>.Filter.Empty);
 
         return await query.ToListAsync();
+
+        // Second Phase
+
+        //var allbooks = await _dbCollection.FindAsync(_ => true).Result.ToListAsync();
     }
 
     public async Task<TEntity> GetAsync(string id)
@@ -56,6 +62,21 @@ public abstract class BaseRepository<TEntity> : IBaseRepository<TEntity> where T
         FilterDefinition<TEntity> filter = Builders<TEntity>.Filter.Eq("_id", objectId);
 
         await _dbCollection.DeleteOneAsync(filter);
+
+        // Second Phase
+
+        //await _dbCollection.DeleteOneAsync(b => b.Id == id);
+    }
+
+    public async Task DeleteAllAsync()
+    {
+        var filter = Builders<TEntity>.Filter.Empty;
+
+        await _dbCollection.DeleteManyAsync(filter);
+
+        // Second Phase
+
+        //await _dbCollection.DeleteManyAsync(_ => true);
     }
 
     protected async Task<IAsyncCursor<TEntity>> Query(FilterDefinition<TEntity> filter)
